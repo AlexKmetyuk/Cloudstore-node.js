@@ -1,73 +1,46 @@
 const { File } = require("../models/File")
-const { check, validationResult } = require('express-validator')
 const url = require('url');
 var fs = require('fs');
-
+const { getFileById } = require('../services/filesServices')
 
 const createFileController = async(req, res) => {
     try {
-        const {
-            owner,
-            name,
-            link,
-            imgUrl,
-            desc,
-            category
-        } = req.body
-
-        const candidateFile = await File.find({ name })
-        if (candidateFile.length) {
-            res.status(400).json({
-                message: "File name should be unique!"
-            })
-            return
-        }
-
-        if (!name || !link || !owner || !category) {
-            res.status(400).json({
-                message: "All fields are required! (owner, name, link, category)"
-            })
-            return
-        }
-
-        const newFile = new File({
-            owner,
-            name,
-            link,
-            category,
-            imgUrl: imgUrl || "",
-            desc: desc || "",
-        })
+        const newFile = new File(req.body)
+        await File.validate(newFile)
         await newFile.save()
 
-        res.status(201).json({ status: "ok", message: `File ${name} was created!`, file: newFile })
+        res.status(201).json({ status: "ok", message: `File ${req.body.name} was created!`, file: newFile })
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({ "Server error": error })
+        res.status(500).json({ "Server error": error.message })
     }
 }
 
 const fileImageUpload = async(req, res) => {
     try {
-        await File.findByIdAndUpdate(req.params.id, { imgUrl: `https://enigmatic-garden-22484.herokuapp.com/api/files/downloadImg/${req.filename}` })
+        const currentFile = await getFileById(req.params.id)
+        if (!currentFile) {
+            res.status(404).json({ status: 'error', message: 'File is not found!' })
+            return
+        }
 
-        res.status(201).json({ status: 'ok', message: 'File was uploaded!', imgUrl: `https://enigmatic-garden-22484.herokuapp.com/api/files/downloadImg/${req.filename}` })
+        await File.findByIdAndUpdate(req.params.id, { imgUrl: `localhost:5005/api/files/downloadImg/${req.filename}` })
+
+        res.status(201).json({ status: 'ok', message: 'File was uploaded!', imgUrl: `localhost:5005/api/files/downloadImg/${req.filename}` })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ "Server error": error })
+        res.status(500).json({ "Server error": error.message })
     }
 }
 
 const getFilesController = async(req, res) => {
     try {
         const queryObj = {...url.parse(req.url, true).query }
-        console.log(queryObj);
 
         let data;
 
         if (queryObj.page) {
-
             data = await File.find(queryObj).skip((queryObj.page - 1) * 10).limit(10)
         } else {
             data = await File.find(queryObj)
@@ -76,7 +49,7 @@ const getFilesController = async(req, res) => {
         res.status(200).json({ status: "ok", message: "success", data })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ "Server error ": error })
+        res.status(500).json({ "Server error ": error.message })
     }
 }
 
@@ -88,14 +61,14 @@ const findByNameController = async(req, res) => {
         res.status(200).json({ status: "ok", message: "success", data })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ "Server error ": error })
+        res.status(500).json({ "Server error ": error.message })
     }
 }
 
 const deleteFileController = async(req, res) => {
     try {
-        const _id = req.params.id
-        const file = await File.findById(_id)
+        const id = req.params.id
+        const file = await getFileById(id)
 
         if (!file) {
             res.status(404).json({ status: "error", message: 'File not found!' })
@@ -105,28 +78,30 @@ const deleteFileController = async(req, res) => {
         const filenameArr = file.imgUrl.split('.')
 
         try {
-            fs.unlinkSync(`./tmp/${_id}.${filenameArr[filenameArr.length - 1]}`)
+            fs.unlinkSync(`./tmp/${id}.${filenameArr[filenameArr.length - 1]}`)
         } catch (error) {
             console.log(error);
         }
 
-        await File.deleteOne({ _id })
-        res.status(200).json({ status: "ok", message: `File with id ${_id} was deleted!` })
+        await File.findByIdAndDelete(id)
+        res.status(200).json({ status: "ok", message: `File with id ${id} was deleted!` })
     } catch (error) {
         console.log(error);
-        res.status(500).json({ "Server error": error })
+        res.status(500).json({ "Server error": error.message })
     }
 }
 
 const updateFileController = async(req, res) => {
     try {
-        const currentFile = await File.findById(req.params.id)
-        console.log(currentFile);
+        const currentFile = await getFileById(req.params.id)
+        if (!currentFile) {
+            res.status(404).json({ status: 'error', message: 'File is not found!' })
+            return
+        }
         const {
             owner,
             name,
             link,
-            imgUrl,
             desc,
             category
         } = req.body
@@ -154,7 +129,7 @@ const updateFileController = async(req, res) => {
             file: currentFile
         })
     } catch (error) {
-        res.status(500).json({ "Server error": error })
+        res.status(500).json({ "Server error": error.message })
     }
 }
 

@@ -5,10 +5,12 @@ const cors = require('cors')
 
 const fileRouter = require('./routes/filesRouter')
 const userRouter = require('./routes/userRouter')
+const { logReq } = require('./middlewares/logReqMiddleware')
 const app = express()
 
 app.use(express.json())
 app.use(cors())
+app.use(logReq)
 app.use('/api/files', fileRouter)
 app.use('/api/user', userRouter)
 
