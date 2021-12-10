@@ -1,27 +1,31 @@
 const { File } = require("../models/File")
 const url = require('url');
 var fs = require('fs');
-const { getFileById } = require('../services/filesServices')
+const { getFileById } = require('../services/filesServices');
+const { CloudstoreError } = require("../helpers/errors");
 
-const createFileController = async(req, res) => {
+const createFileController = async(req, res, next) => {
     try {
-        const newFile = new File(req.body)
+
+        const { owner, name, link, category, desc } = req.body
+        const newFile = new File({ owner: req.user.name, name, link, category })
         await File.validate(newFile)
         await newFile.save()
 
         res.status(201).json({ status: "ok", message: `File ${req.body.name} was created!`, file: newFile })
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ "Server error": error.message })
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
     }
 }
 
-const fileImageUpload = async(req, res) => {
+const fileImageUpload = async(req, res, next) => {
     try {
         const currentFile = await getFileById(req.params.id)
         if (!currentFile) {
-            res.status(404).json({ status: 'error', message: 'File is not found!' })
+            await fs.unlinkSync(`./tmp/${req.filename}`)
+            next(new CloudstoreError('File is not found!'))
             return
         }
 
@@ -29,12 +33,12 @@ const fileImageUpload = async(req, res) => {
 
         res.status(201).json({ status: 'ok', message: 'File was uploaded!', imgUrl: `localhost:5005/api/files/downloadImg/${req.filename}` })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ "Server error": error.message })
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
     }
 }
 
-const getFilesController = async(req, res) => {
+const getFilesController = async(req, res, next) => {
     try {
         const queryObj = {...url.parse(req.url, true).query }
 
@@ -48,37 +52,38 @@ const getFilesController = async(req, res) => {
 
         res.status(200).json({ status: "ok", message: "success", data })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ "Server error ": error.message })
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
     }
 }
 
-const findByNameController = async(req, res) => {
+const findByNameController = async(req, res, next) => {
     try {
         const name = req.body.name
         const data = await File.find({ "name": { $regex: name, $options: 'i' } })
 
         res.status(200).json({ status: "ok", message: "success", data })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ "Server error ": error.message })
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
     }
 }
 
-const deleteFileController = async(req, res) => {
+const deleteFileController = async(req, res, next) => {
     try {
         const id = req.params.id
         const file = await getFileById(id)
 
         if (!file) {
-            res.status(404).json({ status: "error", message: 'File not found!' })
+            next(new CloudstoreError('File not found!'))
             return
+
         }
 
         const filenameArr = file.imgUrl.split('.')
 
         try {
-            fs.unlinkSync(`./tmp/${id}.${filenameArr[filenameArr.length - 1]}`)
+            await fs.unlinkSync(`./tmp/${id}.${filenameArr[filenameArr.length - 1]}`)
         } catch (error) {
             console.log(error);
         }
@@ -86,16 +91,16 @@ const deleteFileController = async(req, res) => {
         await File.findByIdAndDelete(id)
         res.status(200).json({ status: "ok", message: `File with id ${id} was deleted!` })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ "Server error": error.message })
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
     }
 }
 
-const updateFileController = async(req, res) => {
+const updateFileController = async(req, res, next) => {
     try {
         const currentFile = await getFileById(req.params.id)
         if (!currentFile) {
-            res.status(404).json({ status: 'error', message: 'File is not found!' })
+            next(new CloudstoreError('File is not found!'))
             return
         }
         const {
@@ -129,7 +134,8 @@ const updateFileController = async(req, res) => {
             file: currentFile
         })
     } catch (error) {
-        res.status(500).json({ "Server error": error.message })
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
     }
 }
 

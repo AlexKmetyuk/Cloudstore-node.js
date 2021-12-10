@@ -114,7 +114,9 @@ user operations:
         "password": "First1Logon"
     }
     3. response: {
-        "status": "ok",
-        "message": "success"
+        "_id": "61b3244d8dcd819fbe5184a8",
+        "email": "Alex@gmail.com",
+        "firstName": "Alex",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWIzMjQ0ZDhkY2Q4MTlmYmU1MTg0YTgiLCJuYW1lIjoiQWxleCIsImlhdCI6MTYzOTEzMDI2N30.-ZhVHASgnFzarLa286oZaHmxVc4WGISWeZC10AeWK-E"
     }
     

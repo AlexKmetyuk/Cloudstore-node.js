@@ -12,8 +12,11 @@ const {
 } = require('../controllers/fileController')
 
 const { uploadFileImgMiddleware } = require('../middlewares/uploadFileImgMiddleware')
+const { authMiddleware } = require("../middlewares/authMiddleware")
 
 const router = new Router()
+
+router.use(authMiddleware)
 
 router.get('', getFilesController)
 router.get('/find', findByNameController)

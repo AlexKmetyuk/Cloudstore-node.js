@@ -1,36 +1,62 @@
+const { CloudstoreError, NotAuthorizedError } = require('../helpers/errors')
 const { User } = require('../models/User')
+const { registration, login } = require('../services/userServices')
 
-const loginController = async(req, res) => {
+const registerController = async(req, res, next) => {
     try {
-        const { login, password } = req.body
+        const { email, firstName, password, individualCode } = req.body
 
-        const [_, isPlaytika] = login.split('@')
+        if (individualCode !== "First1Logon") {
+            next(new NotAuthorizedError(`Individual code is wrong!`))
+            return
 
-        if (isPlaytika === 'playtika.com' && password === "First1Logon") {
-            res.status(200).json({ status: 'ok', message: `Success, ${_} is authorized!`, isLogin: true })
-        } else {
-            res.status(401).json({ status: 'error', message: 'Invalid login or password!', isLogin: false })
         }
+        await registration(email, firstName, password)
 
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ "Server error": error.message })
-    }
-}
-
-const registerController = async(req, res) => {
-    try {
-        const { name, email } = req.body
-        const user = new User({ name, email })
-        await User.validate(user)
-        await user.save()
-
-        res.status(200).json({ status: 'ok', message: `User ${user.name} was registered!`, user })
+        res.json({ status: 'ok', message: `User ${firstName} was registered!` })
     } catch (error) {
         console.log(error.message);
-        res.status(500).json({ "Server error": error.message })
+        next(new CloudstoreError(error.message))
     }
 }
+
+const loginController = async(req, res, next) => {
+    try {
+        const { email, password } = req.body
+
+
+
+        if (!password || !email) {
+            next(new NotAuthorizedError(`Email and password is required!`))
+            return
+
+        }
+
+        const user = await login(email, password)
+
+        if (!user) {
+            next(new NotAuthorizedError(`Wrong email or password!`))
+            return
+
+        }
+
+        res.json({
+            status: 'ok',
+            message: `success!`,
+            user: {
+                _id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                token: user.token
+            }
+        })
+
+    } catch (error) {
+        console.log(error.message);
+        next(new CloudstoreError(error.message))
+    }
+}
+
 
 module.exports = {
     loginController,
