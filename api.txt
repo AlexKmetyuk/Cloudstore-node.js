@@ -2,10 +2,11 @@ base url: https://enigmatic-garden-22484.herokuapp.com/api
 
 file operations:
 
+All requests must include jwt token in header (Bearer <token>)
+
 1) Create file: 
     1. url: "/files/createFile" (POST)
     2. request: {
-        "owner": "OWNER",
         "name": "FILENAME",
         "link": "Link to file on computer",
         "category": "CATEGORY",

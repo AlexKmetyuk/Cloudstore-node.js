@@ -12,7 +12,7 @@ const createFileController = async(req, res, next) => {
         await File.validate(newFile)
         await newFile.save()
 
-        res.status(201).json({ status: "ok", message: `File ${req.body.name} was created!`, file: newFile })
+        res.status(201).json({ status: "ok", message: `File was created!`, file: newFile })
 
     } catch (error) {
         console.log(error.message);
@@ -29,9 +29,9 @@ const fileImageUpload = async(req, res, next) => {
             return
         }
 
-        await File.findByIdAndUpdate(req.params.id, { imgUrl: `https://Cloudstore-nodejs.alexkmetyuk.repl.co/api/files/downloadImg/${req.filename}` })
+        await File.findByIdAndUpdate(req.params.id, { imgUrl: `/api/files/downloadImg/${req.filename}` })
 
-        res.status(201).json({ status: 'ok', message: 'File was uploaded!', imgUrl: `https://Cloudstore-nodejs.alexkmetyuk.repl.co/api/files/downloadImg/${req.filename}` })
+        res.status(201).json({ status: 'ok', message: 'File was uploaded!', imgUrl: `/api/files/downloadImg/${req.filename}` })
     } catch (error) {
         console.log(error.message);
         next(new CloudstoreError(error.message))
@@ -46,8 +46,8 @@ const getFilesController = async(req, res, next) => {
 
         if (queryObj.page) {
             data = await File.find(queryObj).skip((queryObj.page - 1) * 10).limit(10)
-        } else if(queryObj.category === 'all'){
-          data = await File.find({})
+        } else if (queryObj.category === 'all') {
+            data = await File.find({})
         } else {
             data = await File.find(queryObj)
         }

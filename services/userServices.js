@@ -14,7 +14,6 @@ const registration = async(email, firstName, password) => {
 const login = async(email, password) => {
 
     const currentUser = await User.findOne({ email: email })
-
     if (!currentUser) {
         return false
     }

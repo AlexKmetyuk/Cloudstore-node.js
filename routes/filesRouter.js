@@ -16,13 +16,14 @@ const { authMiddleware } = require("../middlewares/authMiddleware")
 
 const router = new Router()
 
+router.use('/downloadImg', express.static(path.resolve('./tmp')))
+
 router.use(authMiddleware)
 
 router.get('', getFilesController)
 router.get('/find', findByNameController)
 router.post('/createFile', createFileController)
 router.post('/uploadImg/:id', uploadFileImgMiddleware.single('fileImg'), fileImageUpload)
-router.use('/downloadImg', express.static(path.resolve('./tmp')))
 router.delete('/:id', deleteFileController)
 router.patch('/:id', updateFileController)
 

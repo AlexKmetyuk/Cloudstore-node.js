@@ -24,12 +24,9 @@ const loginController = async(req, res, next) => {
     try {
         const { email, password } = req.body
 
-
-
         if (!password || !email) {
             next(new NotAuthorizedError(`Email and password is required!`))
             return
-
         }
 
         const user = await login(email, password)
@@ -37,7 +34,6 @@ const loginController = async(req, res, next) => {
         if (!user) {
             next(new NotAuthorizedError(`Wrong email or password!`))
             return
-
         }
 
         res.json({
