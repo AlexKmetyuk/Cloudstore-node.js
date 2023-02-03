@@ -1,30 +1,28 @@
-const Router = require("express")
-const path = require('path')
-const express = require('express')
+const Router = require("express");
+const path = require("path");
+const express = require("express");
 
 const {
-    createFileController,
-    getFilesController,
-    deleteFileController,
-    fileImageUpload,
-    updateFileController,
-    findByNameController
-} = require('../controllers/fileController')
+  createFilesController,
+  getFilesController,
+  deleteFilesController,
+  fileImageUpload,
+  updatefilesController,
+  findByNameController,
+} = require("../controllers/filesController");
 
-const { uploadFileImgMiddleware } = require('../middlewares/uploadFileImgMiddleware')
-const { authMiddleware } = require("../middlewares/authMiddleware")
+const {
+  uploadFileImgMiddleware,
+  processFileMiddleware,
+} = require("../middlewares/uploadFileImgMiddleware");
 
-const router = new Router()
+const router = new Router();
 
-router.use('/downloadImg', express.static(path.resolve('./tmp')))
+router.post("", createFilesController);
+router.get("", getFilesController);
+// router.get("/find", findByNameController);
+router.post("/img/:id", processFileMiddleware, fileImageUpload);
+router.delete("/:id", deleteFilesController);
+router.patch("/:id", updatefilesController);
 
-router.use(authMiddleware)
-
-router.get('', getFilesController)
-router.get('/find', findByNameController)
-router.post('/createFile', createFileController)
-router.post('/uploadImg/:id', uploadFileImgMiddleware.single('fileImg'), fileImageUpload)
-router.delete('/:id', deleteFileController)
-router.patch('/:id', updateFileController)
-
-module.exports = router
+module.exports = router;

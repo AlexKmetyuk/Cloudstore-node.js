@@ -1,14 +1,16 @@
-const { model, Schema } = require('mongoose');
+const { model, Schema } = require("mongoose");
 
-const FileSchema = new Schema({
-    owner: { type: String, required: true },
+const FileSchema = new Schema(
+  {
     name: { type: String, required: true, unique: true },
     link: { type: String, required: true },
     category: { type: String, required: true },
-    imgUrl: { type: String, default: '' },
-    desc: { type: String, default: '' }
-})
+    imgUrl: { type: String, default: "" },
+    desc: { type: String, default: "" },
+  },
+  { timestamps: { createdAt: "createdAt", updatedAt: false } }
+);
 
-const File = model("File", FileSchema)
+const File = model("File", FileSchema);
 
-module.exports = { File }
+module.exports = { File };
