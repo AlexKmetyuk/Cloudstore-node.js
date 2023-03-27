@@ -1,15 +1,27 @@
 const { CloudstoreError } = require("../helpers/errors");
 const { Category } = require("../models/Category");
+const { Counters } = require("../models/Counters");
 
 const addCategoryController = async (req, res, next) => {
   try {
+    const [categoriesCounter] = await Counters.find({
+      counterName: "categories",
+    });
+    const newCategoryId = categoriesCounter.count + 1;
+
     const { title, parentId } = req.body;
     const newCategory = new Category({
       title,
       parentId,
+      categoryId: newCategoryId,
     });
     await Category.validate(newCategory);
     await newCategory.save();
+
+    await Counters.findOneAndUpdate(
+      { counterName: "categories" },
+      { count: newCategoryId }
+    );
 
     res.status(201).json({
       status: "ok",

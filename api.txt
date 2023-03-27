@@ -1,11 +1,7 @@
-base url: https://enigmatic-garden-22484.herokuapp.com/api
-
-file operations:
-
-All requests must include jwt token in header (Bearer <token>)
+base url: https://cloudstorage.alexkmetyuk.repl.co/api
 
 1) Create file: 
-    1. url: "/files/createFile" (POST)
+    1. url: "/files" (POST)
     2. request: {
         "name": "FILENAME",
         "link": "Link to file on computer",
@@ -13,44 +9,19 @@ All requests must include jwt token in header (Bearer <token>)
         "desc": "DESCRIPTION", (optional)
         "imgUrl": "url" (optional)
     }
-    3. response: {
-        "status": "ok",
-        "message": "File FILENAME was created!",
-        "fileId": "ID"
-    }
 
 2) Delete file: 
     1. url: "/files/:id" (DELETE)
-    2. request: null
-    3. response: {
-        "status": "ok",
-        "message": "File with id ID was deleted!"
-    }
 
 3) Get files: 
-    1. url: "/files?category=CATEGORY&name=NAME&_id=ID&owner=OWNER&page=1" (GET)
-    2. request: null
-    3. response: {
-        "status": "ok",
-        "message": "success",
-        "data": [
-            {
-                "_id": "61ae2d6b936475c1463735b2",
-                "owner": "Alex",
-                "name": "Filename 1",
-                "link": "VTpcV29yayBNYXJrZXRpbmcgVGVhbVxCaW5nb0JsaXR6XFBsYXlhYmxlQWRcQ2hlZjExXHNvdW5k",
-                "imgUrl": "http://localhost:5005/api/files/downloadImg/61ae2d6b936475c1463735b2.png",
-                "category": "Video",
-                "desc": "",
-                "__v": 0
-            }
-        ]
+    1. url: "/files?category=CATEGORY&page=1&limit=10" (GET)
+    2. request: {
+        "name": "FILENAME"
     }
 
 4) Update file: 
     1. url: "/files/:id" (PATCH)
     2. request: {
-        "owner": "OWNER",
         "name": "FILENAME",
         "link": "Link to file on computer",
         "imgUrl": " ",
@@ -58,66 +29,20 @@ All requests must include jwt token in header (Bearer <token>)
         "category": "CATEGORY"
     }
     (Parameters is not required)
-    3. response: {
-        "status": "ok",
-        "message": "File was updated!",
-        "file": {
-            "_id": "61ae323bd7e38817ab6c0764",
-            "owner": "Alex",
-            "name": "FILENAME",
-            "link": "VTpcV29yayBNYXJrZXRpbmcgVGVhbVxCaW5nb0JsaXR6XFBsYXlhYmxlQWRcQ2hlZjExXHNvdW5k",
-            "imgUrl": " ",
-            "category": "Video",
-            "desc": " ",
-            "__v": 0
-        }
-    }
 
 5) Upload image for file: 
-    1. url: "/files/uploadImg/:id" (POST)
-    2. request: multi-part/form-data, Key: fileImg, Value: file 
-    3. response: {
-        "status": "ok",
-        "message": "File was uploaded!"
-    }
+    1. url: "/files/img/:id" (POST)
+    2. request: multi-part/form-data, Key: file, Value: file 
 
 6) Get image: 
     1.  url: url from file obj (imgUrl) (GET)
 
-7) Find by name:
-    1. url: "/find" (GET)
+7) Add category: 
+    1. url: "/category" (POST)
     2. request: {
-        "name": "B"
-    }
-    3. response: {
-        "status": "ok",
-        "message": "success",
-        "data": [
-            {
-                "_id": "61af1a3e263ae265554b83d6",
-                "owner": "Yurec",
-                "name": "Images for BB",
-                "link": "VTpcV29yayBNYXJrZXRpbmcgVGVhbVxCaW5nb0JsaXR6XFBsYXlhYmxlQWRcQ2hlZjExXHNvdW5k",
-                "imgUrl": "",
-                "category": "images",
-                "desc": "",
-                "__v": 0
-            }
-        ]
+        "title": "SGH",
+        "parentId": 1
     }
 
-user operations: 
-
-1)Login: 
-    1. url: "/user/login" (GET)
-    2. request: {
-        "login": "user@playtika.com", (playtika.com is required in email)
-        "password": "First1Logon"
-    }
-    3. response: {
-        "_id": "61b3244d8dcd819fbe5184a8",
-        "email": "Alex@gmail.com",
-        "firstName": "Alex",
-        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWIzMjQ0ZDhkY2Q4MTlmYmU1MTg0YTgiLCJuYW1lIjoiQWxleCIsImlhdCI6MTYzOTEzMDI2N30.-ZhVHASgnFzarLa286oZaHmxVc4WGISWeZC10AeWK-E"
-    }
-    
+8) Get categories: 
+    1. url: "/category" (GET)

@@ -59,7 +59,7 @@ const fileImageUpload = async (req, res, next) => {
 const getFilesController = async (req, res, next) => {
   try {
     const queryObj = { ...url.parse(req.url, true).query };
-    const bodyObj = req.body;
+    // const bodyObj = req.body;
 
     const limit = queryObj.limit || 0;
     const offset = queryObj.page ? (queryObj.page - 1) * limit : 0;
@@ -70,9 +70,11 @@ const getFilesController = async (req, res, next) => {
       findParameters.category = { $regex: queryObj.category, $options: "i" };
     }
 
-    if (bodyObj.name) {
-      findParameters.name = { $regex: bodyObj.name, $options: "i" };
+    if (queryObj.name) {
+      findParameters.name = { $regex: queryObj.name, $options: "i" };
     }
+
+    console.log(findParameters);
 
     const data = await File.find(findParameters).limit(limit).skip(offset);
 
@@ -83,17 +85,17 @@ const getFilesController = async (req, res, next) => {
   }
 };
 
-const findByNameController = async (req, res, next) => {
-  try {
-    const name = req.body.name;
-    const data = await File.find({ name: { $regex: name, $options: "i" } });
+// const findByNameController = async (req, res, next) => {
+//   try {
+//     const name = req.body.name;
+//     const data = await File.find({ name: { $regex: name, $options: "i" } });
 
-    res.status(200).json({ status: "ok", message: "success", data });
-  } catch (error) {
-    console.log(error.message);
-    next(new CloudstoreError(error.message));
-  }
-};
+//     res.status(200).json({ status: "ok", message: "success", data });
+//   } catch (error) {
+//     console.log(error.message);
+//     next(new CloudstoreError(error.message));
+//   }
+// };
 
 const deleteFilesController = async (req, res, next) => {
   try {
@@ -157,5 +159,5 @@ module.exports = {
   deleteFilesController,
   fileImageUpload,
   updatefilesController,
-  findByNameController,
+  // findByNameController,
 };
