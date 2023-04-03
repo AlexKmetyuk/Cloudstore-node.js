@@ -1,6 +1,7 @@
 const { CloudstoreError } = require("../helpers/errors");
 const { Category } = require("../models/Category");
 const { Counters } = require("../models/Counters");
+const { deleteCategory } = require("../services/categoriesServices");
 
 const addCategoryController = async (req, res, next) => {
   try {
@@ -37,7 +38,6 @@ const addCategoryController = async (req, res, next) => {
 const getCategoriesController = async (req, res, next) => {
   try {
     const categories = await Category.find({});
-    // const categories = await Category.deleteMany();
 
     res.status(200).json({
       status: "ok",
@@ -49,4 +49,21 @@ const getCategoriesController = async (req, res, next) => {
   }
 };
 
-module.exports = { addCategoryController, getCategoriesController };
+const deleteCategoryController = async (req, res, next) => {
+  try {
+    await deleteCategory(req.body.id);
+
+    res.status(200).json({
+      status: "ok",
+    });
+  } catch (error) {
+    console.log(error);
+    next(new CloudstoreError(error.message));
+  }
+};
+
+module.exports = {
+  addCategoryController,
+  getCategoriesController,
+  deleteCategoryController,
+};

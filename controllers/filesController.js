@@ -85,18 +85,6 @@ const getFilesController = async (req, res, next) => {
   }
 };
 
-// const findByNameController = async (req, res, next) => {
-//   try {
-//     const name = req.body.name;
-//     const data = await File.find({ name: { $regex: name, $options: "i" } });
-
-//     res.status(200).json({ status: "ok", message: "success", data });
-//   } catch (error) {
-//     console.log(error.message);
-//     next(new CloudstoreError(error.message));
-//   }
-// };
-
 const deleteFilesController = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -117,7 +105,7 @@ const deleteFilesController = async (req, res, next) => {
   }
 };
 
-const updatefilesController = async (req, res, next) => {
+const updateFilesController = async (req, res, next) => {
   try {
     const currentFile = await getFileById(req.params.id);
     if (!currentFile) {
@@ -158,6 +146,5 @@ module.exports = {
   getFilesController,
   deleteFilesController,
   fileImageUpload,
-  updatefilesController,
-  // findByNameController,
+  updateFilesController,
 };

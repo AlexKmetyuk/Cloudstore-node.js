@@ -7,8 +7,7 @@ const {
   getFilesController,
   deleteFilesController,
   fileImageUpload,
-  updatefilesController,
-  findByNameController,
+  updateFilesController,
 } = require("../controllers/filesController");
 
 const {
@@ -20,9 +19,8 @@ const router = new Router();
 
 router.post("", createFilesController);
 router.get("", getFilesController);
-// router.get("/find", findByNameController);
 router.post("/img/:id", processFileMiddleware, fileImageUpload);
 router.delete("/:id", deleteFilesController);
-router.patch("/:id", updatefilesController);
+router.patch("/:id", updateFilesController);
 
 module.exports = router;
