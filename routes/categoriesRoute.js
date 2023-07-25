@@ -9,8 +9,8 @@ const {
 
 const router = new Router();
 
-router.post("", addCategoryController); // Add category
-router.get("", getCategoriesController); // Get all categories
+router.post("", addCategoryController);
+router.get("", getCategoriesController);
 router.delete("", deleteCategoryController);
 
 module.exports = router;

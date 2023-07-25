@@ -1,20 +1,20 @@
-const { File } = require("../models/File");
 const url = require("url");
 const { getFileById } = require("../services/filesServices");
 const { CloudstoreError } = require("../helpers/errors");
 const { uploadImgToStorage } = require("../services/imageUploader");
+const { Op } = require("sequelize");
+
+const db = require("../models/index");
+
+const File = db.files;
 
 const createFilesController = async (req, res, next) => {
   try {
     const { name, link, category, desc } = req.body;
 
-    const newFile = new File({ name, link, category, desc });
-    await File.validate(newFile);
-    await newFile.save();
+    const file = await File.create({ name, link, category, desc });
 
-    res
-      .status(201)
-      .json({ status: "ok", message: `File was created!`, file: newFile });
+    res.status(201).json({ status: "ok", message: `File was created!`, file });
   } catch (error) {
     console.log(error.message);
     next(new CloudstoreError(error.message));
@@ -23,11 +23,12 @@ const createFilesController = async (req, res, next) => {
 
 const fileImageUpload = async (req, res, next) => {
   try {
-    const currentFile = await getFileById(req.params.id);
+    const fileId = req.params.id;
+    const currentFile = await File.findOne({ where: { id: fileId } });
     const image = req.file;
 
     if (!currentFile) {
-      next(new CloudstoreError(`Not found file with id ${req.params.id}`));
+      next(new CloudstoreError(`Not found file with id ${fileId}`));
       return;
     }
 
@@ -37,13 +38,14 @@ const fileImageUpload = async (req, res, next) => {
     }
 
     const [_, extension] = image.originalname.split(".");
-    image.originalname = `${req.params.id}.${extension}`;
+    image.originalname = `${fileId}.${extension}`;
 
     const imageUrl = await uploadImgToStorage(image);
 
-    await File.findByIdAndUpdate(req.params.id, {
-      imgUrl: imageUrl,
-    });
+    const updatedFile = await File.update(
+      { imgUrl: imageUrl },
+      { where: { id: fileId } }
+    );
 
     res.status(200).json({
       status: "ok",
@@ -59,24 +61,27 @@ const fileImageUpload = async (req, res, next) => {
 const getFilesController = async (req, res, next) => {
   try {
     const queryObj = { ...url.parse(req.url, true).query };
-    // const bodyObj = req.body;
 
-    const limit = queryObj.limit || 0;
+    const limit = queryObj.limit || 10;
     const offset = queryObj.page ? (queryObj.page - 1) * limit : 0;
 
     const findParameters = {};
 
     if (queryObj.category) {
-      findParameters.category = { $regex: queryObj.category, $options: "i" };
+      findParameters.category = { [Op.like]: `%${queryObj.category}%` };
     }
 
     if (queryObj.name) {
-      findParameters.name = { $regex: queryObj.name, $options: "i" };
+      findParameters.name = { [Op.like]: `%${queryObj.name}%` };
     }
 
-    console.log(findParameters);
-
-    const data = await File.find(findParameters).limit(limit).skip(offset);
+    const data = await File.findAll({
+      limit,
+      offset,
+      where: {
+        ...findParameters,
+      },
+    });
 
     res.status(200).json({ status: "ok", message: "success", data });
   } catch (error) {
@@ -87,19 +92,21 @@ const getFilesController = async (req, res, next) => {
 
 const deleteFilesController = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const file = await getFileById(id);
+    const fileId = req.params.id;
 
-    if (!file) {
-      next(new CloudstoreError("File not found!"));
+    const result = await File.destroy({
+      where: { id: fileId },
+    });
+
+    if (result == 0) {
+      next(new CloudstoreError(`Not found file with id ${fileId}`));
       return;
     }
 
-    await File.findByIdAndDelete(id);
-
-    res
-      .status(200)
-      .json({ status: "ok", message: `File with id ${id} was deleted!` });
+    res.status(200).json({
+      status: "ok",
+      message: `File with id ${fileId} was deleted!`,
+    });
   } catch (error) {
     next(new CloudstoreError(error.message));
   }
@@ -107,15 +114,17 @@ const deleteFilesController = async (req, res, next) => {
 
 const updateFilesController = async (req, res, next) => {
   try {
-    const currentFile = await getFileById(req.params.id);
+    const fileId = req.params.id;
+    const file = await File.findOne({ where: { id: fileId } });
+    const currentFile = file.dataValues;
+
     if (!currentFile) {
       next(new CloudstoreError("File is not found!"));
       return;
     }
-    const { owner, name, link, desc, category } = req.body;
-    if (owner) {
-      currentFile.owner = owner;
-    }
+
+    const { name, link, desc, category } = req.body;
+
     if (name) {
       currentFile.name = name;
     }
@@ -129,7 +138,8 @@ const updateFilesController = async (req, res, next) => {
       currentFile.category = category;
     }
 
-    await File.findByIdAndUpdate(req.params.id, currentFile);
+    await File.update(currentFile, { where: { id: fileId } });
+
     res.status(200).json({
       status: "ok",
       message: "File was updated!",

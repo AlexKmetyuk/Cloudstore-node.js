@@ -1,11 +1,27 @@
-const { model, Schema } = require("mongoose");
+module.exports = (sequelize, DataTypes) => {
+  const Category = sequelize.define(
+    "category",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false,
+      },
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      parentId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+    },
+    {
+      timestamps: false,
+      createdAt: false,
+    }
+  );
 
-const CategorySchema = new Schema({
-  title: { type: String, required: true },
-  parentId: { type: Number, required: true },
-  categoryId: { type: Number, required: true },
-});
-
-const Category = model("Category", CategorySchema);
-
-module.exports = { Category };
+  return Category;
+};

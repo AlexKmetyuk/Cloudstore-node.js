@@ -1,12 +1,12 @@
-const { Category } = require("../models/Category");
+const db = require("../models/index");
+const Category = db.categories;
 
 const deleteCategory = async (categoryId) => {
-  const children = await Category.find({ parentId: categoryId });
-
-  await Category.findOneAndDelete({ categoryId: categoryId });
+  const children = await Category.findAll({ where: { parentId: categoryId } });
+  await Category.destroy({ where: { id: categoryId } });
 
   for (const child of children) {
-    await deleteCategory(child.categoryId);
+    await deleteCategory(child.id);
   }
 };
 

@@ -1,28 +1,22 @@
 const { CloudstoreError } = require("../helpers/errors");
-const { Category } = require("../models/Category");
-const { Counters } = require("../models/Counters");
 const { deleteCategory } = require("../services/categoriesServices");
+
+const db = require("../models/index");
+
+const Category = db.categories;
 
 const addCategoryController = async (req, res, next) => {
   try {
-    const [categoriesCounter] = await Counters.find({
-      counterName: "categories",
-    });
-    const newCategoryId = categoriesCounter.count + 1;
-
     const { title, parentId } = req.body;
-    const newCategory = new Category({
-      title,
-      parentId,
-      categoryId: newCategoryId,
-    });
-    await Category.validate(newCategory);
-    await newCategory.save();
 
-    await Counters.findOneAndUpdate(
-      { counterName: "categories" },
-      { count: newCategoryId }
-    );
+    const parentCategory = await Category.findOne({ where: { id: parentId } });
+
+    if (!parentCategory && parentId != 0) {
+      next(new CloudstoreError("Parent category not found!"));
+      return;
+    }
+
+    const newCategory = await Category.create({ title, parentId });
 
     res.status(201).json({
       status: "ok",
@@ -37,7 +31,7 @@ const addCategoryController = async (req, res, next) => {
 
 const getCategoriesController = async (req, res, next) => {
   try {
-    const categories = await Category.find({});
+    const categories = await Category.findAll({});
 
     res.status(200).json({
       status: "ok",
@@ -51,6 +45,14 @@ const getCategoriesController = async (req, res, next) => {
 
 const deleteCategoryController = async (req, res, next) => {
   try {
+    const categoryId = req.body.id;
+    const category = await Category.findOne({ where: { id: categoryId } });
+    console.log("Cat", category);
+    if (!category) {
+      next(new CloudstoreError(`Not found category with id ${categoryId}`));
+      return;
+    }
+
     await deleteCategory(req.body.id);
 
     res.status(200).json({

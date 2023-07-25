@@ -1,4 +1,1 @@
-{
-    "PORT": 5005,
-    "dbURL": "mongodb+srv://PlaytikaCloudStore:First1Logon@cloudstore.trd0w.mongodb.net/cloudestore?retryWrites=true&w=majority"
-}
+{}
